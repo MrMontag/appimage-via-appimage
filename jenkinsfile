@@ -48,12 +48,30 @@ pipeline {
                             cp qt/qt.desktop appdir/usr/share/qt.desktop
                             cp qt/icon.svg appdir/usr/share/pixmaps/icon.svg
 
+                            linuxdeployqt-6-x86_64.AppImage appdir/usr/share/qt.desktop -bundle-non-qt-libs -no-translations -extra-plugins=iconengines
+
                             # Chromium crash workaround
                             cp /usr/lib/x86_64-linux-gnu/nss/* ./appdir/usr/lib
 
+                            # Workaround to increase compatibility with older systems;
+                            # see https://github.com/darealshinji/AppImageKit-checkrt amd
+                            # https://docs.appimage.org/packaging-guide/advanced/troubleshooting.html?highlight=libstdc for details
+                            mkdir -p appdir/usr/optional/
+                            wget -c https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/exec-x86_64.so -O ./appdir/usr/optional/exec.so
+                            mkdir -p appdir/usr/optional/libstdc++/
+                            cp /usr/lib/x86_64-linux-gnu/libstdc++.so.6 ./appdir/usr/optional/libstdc++/
+                            mkdir -p appdir/usr/optional/libgcc_s/
+                            cp /lib/x86_64-linux-gnu/libgcc_s.so.1 ./appdir/usr/optional/libgcc_s/libgcc_s.so.1
+                            cd appdir
+                            rm AppRun
+                            wget -c https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/AppRun-patched-x86_64 -O AppRun
+                            chmod a+x AppRun
+                            cd ..
+
                             export VERSIO=0.0.1
 
-                            linuxdeployqt-6-x86_64.AppImage appdir/usr/share/qt.desktop -appimage -bundle-non-qt-libs -no-translations
+                            #linuxdeployqt-6-x86_64.AppImage appdir/usr/share/qt.desktop -appimage -bundle-non-qt-libs -no-translations
+                            linuxdeployqt-6-x86_64.AppImage appdir/usr/share/qt.desktop -appimage
                         '''
                     }
                 }
