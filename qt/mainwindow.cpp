@@ -10,6 +10,7 @@ MainWindow::MainWindow(QWidget *parent)
     , _proc(new QProcess(this))
 {
     ui->setupUi(this);
+    ui->webWidget->load(QUrl("http://www.qt.io/"));
 }
 
 MainWindow::~MainWindow()

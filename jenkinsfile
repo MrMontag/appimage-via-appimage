@@ -41,11 +41,15 @@ pipeline {
                             mkdir -p appdir/usr/bin
                             mkdir -p appdir/usr/share/pixmaps
                             mkdir -p appdir/usr/resources
+                            mkdir -p appdir/usr/lib
 
                             # collect files
                             cp qt/bin/qt appdir/usr/bin/
                             cp qt/qt.desktop appdir/usr/share/qt.desktop
                             cp qt/icon.svg appdir/usr/share/pixmaps/icon.svg
+
+                            # Chromium crash workaround
+                            cp /usr/lib/x86_64-linux-gnu/nss/* ./appdir/usr/lib
 
                             export VERSIO=0.0.1
 
