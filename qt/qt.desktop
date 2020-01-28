@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Test
+TryExec=qt
+Exec=qt %F
+Icon=icon
+Terminal=false
+Categories=Development;

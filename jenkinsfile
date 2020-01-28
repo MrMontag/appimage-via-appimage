@@ -1,0 +1,69 @@
+pipeline {
+    agent none
+
+    options {
+        parallelsAlwaysFailFast()
+        disableConcurrentBuilds()
+    }
+
+    stages {
+        stage('Build') {
+            parallel {
+                stage ('linux') {
+                    agent { label 'master' }
+                    steps {
+                        step([$class: 'WsCleanup'])
+                        checkout scm
+                        sh '''
+                            cd qt
+                            qmake qt.pro CONFIG+=release && make -j3
+                        '''
+                    }
+                    post {
+                        always {
+                            recordIssues aggregatingResults: true, enabledForFailure: true, tools: [gcc4(reportEncoding: 'UTF-8')]
+                            recordIssues enabledForFailure: true, tools: [taskScanner(ignoreCase: true, includePattern: '**/*.c, **/*.cpp, **/*.h, **/*.pro, **/*.pri', normalTags: 'TODO')]
+                        }
+                    }
+                }
+            }
+        }
+        stage('Pack') {
+            parallel {
+                stage ('linux') {
+                    agent { label 'master' }
+                    steps {
+                        sh '''
+                            tree
+                        '''
+                        sh '''
+                            # create folder structure
+                            mkdir -p appdir/usr/bin
+                            mkdir -p appdir/usr/share/pixmaps
+                            mkdir -p appdir/usr/resources
+
+                            # collect files
+                            cp qt/bin/qt appdir/usr/bin/
+                            cp qt/qt.desktop appdir/usr/share/qt.desktop
+                            cp qt/icon.svg appdir/usr/share/pixmaps/icon.svg
+
+                            export VERSIO=0.0.1
+
+                            linuxdeployqt-6-x86_64.AppImage appdir/usr/share/qt.desktop -appimage -bundle-non-qt-libs -no-translations
+                        '''
+                    }
+                }
+            }
+        }
+        stage('Archive') {
+            parallel {
+                stage('linux') {
+                    agent { label 'master'}
+                    steps {
+                        archiveArtifacts artifacts: '*.AppImage', fingerprint: true
+                    }
+                }
+            }
+        }
+    }
+}
